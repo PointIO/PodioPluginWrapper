@@ -17,6 +17,8 @@ import org.codehaus.jettison.json.JSONObject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -103,19 +105,15 @@ public class PodioPluginWrapper {
     public JSONObject getItems(String app_id){
         JSONObject rc = null;
 
+        final String ADDR = apiPrefix + "/item/app/"+app_id+"/filter/";
+
         try{
             connect();
 
-            https://api.podio.com/item/app/5328623/filter/
-
-
-
-            System.out.println("https://api.podio.com/item/app/5328623/filter/");
-            System.out.println(this.access_token);
             // get http client
             HttpClient httpClient = HttpClientBuilder.create().build();
             HttpContext localContext = new BasicHttpContext();
-            HttpPost httpPost = new HttpPost("https://api.podio.com/item/app/5328623/filter/");
+            HttpPost httpPost = new HttpPost(new URI(ADDR));
 
             // add auth headers
             httpPost.addHeader("Authorization", "Bearer " + access_token);
@@ -126,6 +124,7 @@ public class PodioPluginWrapper {
 
             // parse result as JSON
             rc = new JSONObject(getASCIIContentFromEntity(entity));
+            System.out.println(rc.toString());
 
 
         } catch (JSONException e) {
@@ -135,6 +134,8 @@ public class PodioPluginWrapper {
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (URISyntaxException e) {
             e.printStackTrace();
         }
         return rc;

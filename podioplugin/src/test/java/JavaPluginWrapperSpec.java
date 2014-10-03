@@ -20,7 +20,7 @@ public class JavaPluginWrapperSpec {
         PodioPluginWrapper podioClient = new PodioPluginWrapper(clientId,clientSecret,refresh_token);
 
 //        podioClient.connect();
-        podioClient.getItems(app_id);
+        podioClient.getItems("5328623");
 //        podioClient.getItemById("202558169");
     }
 }

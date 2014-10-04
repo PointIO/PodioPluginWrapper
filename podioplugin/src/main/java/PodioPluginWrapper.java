@@ -8,6 +8,7 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.BasicHttpContext;
@@ -30,8 +31,6 @@ import java.util.logging.Logger;
 public class PodioPluginWrapper {
     private String clientId;
     private String clientSecret;
-    private String username;
-    private String password;
     private String externalId;
     private String app_id ;
     private int limit;
@@ -103,10 +102,14 @@ public class PodioPluginWrapper {
         }
 
     }
-    /*
-     * list all items in an app by calling app_id
+    /**
+     * @param app_id
+     *
+     * Returns the items on app matching the given filters.
      * Reference:
      * https://developers.podio.com/doc/items/get-items-27803
+     *
+     * GET /item/app/{app_id}/
      */
     public JSONObject getItems(String app_id){
         JSONObject rc = null;
@@ -148,9 +151,12 @@ public class PodioPluginWrapper {
 
 
     }
-    /*
-     * get item by itemId
-     *
+    /**
+     * @param itemId
+     * Returns the item with the specified id.
+     * Reference:
+     * https://developers.podio.com/doc/items/get-item-22360
+     * GET /item/{item_id}
      */
 
     public JSONObject getItemById(String itemId){
@@ -187,10 +193,13 @@ public class PodioPluginWrapper {
         }
         return rc;
     }
-    /*
+    /**
+     * @param app_id
+     * @param ExtId
      * Get item by externalId
-     * apidoc:
+     * Reference:
      * https://developers.podio.com/doc/items/get-item-by-external-id-19556702
+     * GET /item/app/{app_id}/external_id/{external_id}
      */
     public JSONObject getItemByExtId(String app_id,String ExtId){
         JSONObject rc=null;
@@ -241,7 +250,7 @@ public class PodioPluginWrapper {
       * https://developers.podio.com/doc/items/update-item-field-values-22367
       * Restful: PUT /item/{item_id}/value/{field_or_external_id}
      */
-    public JSONObject updateItemFieldVal(String itemId,String targetId){
+    public JSONObject updateItemFieldVal(String itemId,String targetId,JSONObject values){
         JSONObject rc=null;
 
         final String ADDR = apiPrefix + "/item/"+itemId+"/value/"+targetId;
@@ -255,6 +264,10 @@ public class PodioPluginWrapper {
 
             // set header
             httpPut.addHeader("Authorization","Bearer " + access_token);
+            httpPut.addHeader("Content-Type","application/json");
+
+            // set request body
+            httpPut.setEntity(new StringEntity(values.toString()));
 
             // execute
             HttpResponse response = httpClient.execute(httpPut, localContext);
@@ -293,7 +306,7 @@ public class PodioPluginWrapper {
      *
      */
 
-    public JSONObject updateItem(String itemId){
+    public JSONObject updateItem(String itemId,JSONObject value){
         JSONObject rc=null;
 
         final String ADDR = apiPrefix + "/item/"+itemId;
@@ -307,6 +320,10 @@ public class PodioPluginWrapper {
 
             // set header
             httpPut.addHeader("Authorization","Bearer " + access_token);
+            httpPut.addHeader("Content-Type","application/json");
+
+            // set request body
+            httpPut.setEntity(new StringEntity(value.toString()));
 
             // execute
             HttpResponse response = httpClient.execute(httpPut, localContext);
@@ -341,7 +358,7 @@ public class PodioPluginWrapper {
      * PUT /item/{item_id}/value
      */
 
-    public JSONObject updateItemVals(String itemId){
+    public JSONObject updateItemVals(String itemId,JSONObject values){
         JSONObject rc=null;
 
         final String ADDR = apiPrefix + "/item/"+itemId+"/value";
@@ -355,6 +372,10 @@ public class PodioPluginWrapper {
 
             // set header
             httpPut.addHeader("Authorization","Bearer " + access_token);
+            httpPut.addHeader("Content-Type","application/json");
+
+            // set request body
+            httpPut.setEntity(new StringEntity(values.toString()));
 
             // execute
             HttpResponse response = httpClient.execute(httpPut, localContext);

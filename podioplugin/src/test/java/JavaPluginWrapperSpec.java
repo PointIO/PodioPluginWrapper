@@ -8,8 +8,8 @@ public class JavaPluginWrapperSpec {
     private static String clientSecret = "JBlXhbWH1skjCvCyQqDw9BICEdME8Iq2LGoqeD8MEXDxHhtepUJ2VS5jpZg5NtiZ";
     private static String username = "";
     private static String password;
-    private static String externalId ;
-    private static String app_id ="5328632";
+    private static String externalId= "contact-details";
+    private static String app_id ="5328623";
     private static String itemId="";
     private static int limit;
     private static Item targetedItem;
@@ -20,7 +20,9 @@ public class JavaPluginWrapperSpec {
         PodioPluginWrapper podioClient = new PodioPluginWrapper(clientId,clientSecret,refresh_token);
 
 //        podioClient.connect();
-        podioClient.getItems("5328623");
+//        podioClient.getItems("5328623");
 //        podioClient.getItemById("202558169");
+
+        podioClient.getItemByExtId(app_id,externalId);
     }
 }

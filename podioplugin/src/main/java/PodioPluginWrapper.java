@@ -7,6 +7,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.BasicHttpContext;
@@ -102,6 +103,11 @@ public class PodioPluginWrapper {
         }
 
     }
+    /*
+     * list all items in an app by calling app_id
+     * Reference:
+     * https://developers.podio.com/doc/items/get-items-27803
+     */
     public JSONObject getItems(String app_id){
         JSONObject rc = null;
 
@@ -142,6 +148,10 @@ public class PodioPluginWrapper {
 
 
     }
+    /*
+     * get item by itemId
+     *
+     */
 
     public JSONObject getItemById(String itemId){
         JSONObject rc=null;
@@ -177,6 +187,199 @@ public class PodioPluginWrapper {
         }
         return rc;
     }
+    /*
+     * Get item by externalId
+     * apidoc:
+     * https://developers.podio.com/doc/items/get-item-by-external-id-19556702
+     */
+    public JSONObject getItemByExtId(String app_id,String ExtId){
+        JSONObject rc=null;
+
+        final String ADDR = apiPrefix + "/item/app/" + app_id + "/external_id/" + ExtId;
+        try {
+            connect();
+            System.out.println(ADDR);
+
+            // get http client
+            HttpClient httpClient = HttpClientBuilder.create().build();
+            HttpContext localContext = new BasicHttpContext();
+            HttpGet httpGet = new HttpGet(new URI(ADDR));
+
+
+            // set header
+            httpGet.addHeader("Authorization","Bearer " + access_token);
+
+            // execute
+            HttpResponse response = httpClient.execute(httpGet, localContext);
+            HttpEntity entity = response.getEntity();
+
+            // parse result as JSON
+            rc = new JSONObject(getASCIIContentFromEntity(entity));
+            System.out.println(rc);
+
+
+        } catch (ClientProtocolException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+        return rc;
+    }
+    /**
+     * @param itemId
+     * @param targetId
+     *
+     * Update the item values for a specific field.
+      * The identifier for the field can either be the field_id or the external_id for the field.
+      * Reference:
+      * https://developers.podio.com/doc/items/update-item-field-values-22367
+      * Restful: PUT /item/{item_id}/value/{field_or_external_id}
+     */
+    public JSONObject updateItemFieldVal(String itemId,String targetId){
+        JSONObject rc=null;
+
+        final String ADDR = apiPrefix + "/item/"+itemId+"/value/"+targetId;
+        try {
+            connect();
+
+            // get http client
+            HttpClient httpClient = HttpClientBuilder.create().build();
+            HttpContext localContext = new BasicHttpContext();
+            HttpPut httpPut = new HttpPut(new URI(ADDR));
+
+            // set header
+            httpPut.addHeader("Authorization","Bearer " + access_token);
+
+            // execute
+            HttpResponse response = httpClient.execute(httpPut, localContext);
+            HttpEntity entity = response.getEntity();
+
+            // parse result as JSON
+            rc = new JSONObject(getASCIIContentFromEntity(entity));
+            System.out.println(rc);
+//            LOGGER.log(Level.INFO,"[connect] Received JSON: " + rc.toString());
+
+
+        } catch (ClientProtocolException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+        return rc;
+    }
+
+    /**
+     *
+     * @param itemId
+     * @return
+     *
+     * Update an already existing item. Values will only be updated for fields included.
+     * To delete all values for a field supply an empty array as values for that field.
+     * Reference:
+     * https://developers.podio.com/doc/items/update-item-22363
+     * PUT /item/{item_id}
+     *
+     */
+
+    public JSONObject updateItem(String itemId){
+        JSONObject rc=null;
+
+        final String ADDR = apiPrefix + "/item/"+itemId;
+        try {
+            connect();
+
+            // get http client
+            HttpClient httpClient = HttpClientBuilder.create().build();
+            HttpContext localContext = new BasicHttpContext();
+            HttpPut httpPut = new HttpPut(new URI(ADDR));
+
+            // set header
+            httpPut.addHeader("Authorization","Bearer " + access_token);
+
+            // execute
+            HttpResponse response = httpClient.execute(httpPut, localContext);
+            HttpEntity entity = response.getEntity();
+
+            // parse result as JSON
+            rc = new JSONObject(getASCIIContentFromEntity(entity));
+            System.out.println(rc);
+
+
+        } catch (ClientProtocolException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+        return rc;
+    }
+
+    /**
+     *
+     * @param itemId
+     * @return
+     * Updates all the values for an item
+     * Reference:
+     * https://developers.podio.com/doc/items/update-item-values-22366
+     * PUT /item/{item_id}/value
+     */
+
+    public JSONObject updateItemVals(String itemId){
+        JSONObject rc=null;
+
+        final String ADDR = apiPrefix + "/item/"+itemId+"/value";
+        try {
+            connect();
+
+            // get http client
+            HttpClient httpClient = HttpClientBuilder.create().build();
+            HttpContext localContext = new BasicHttpContext();
+            HttpPut httpPut = new HttpPut(new URI(ADDR));
+
+            // set header
+            httpPut.addHeader("Authorization","Bearer " + access_token);
+
+            // execute
+            HttpResponse response = httpClient.execute(httpPut, localContext);
+            HttpEntity entity = response.getEntity();
+
+            // parse result as JSON
+            rc = new JSONObject(getASCIIContentFromEntity(entity));
+            System.out.println(rc);
+
+
+        } catch (ClientProtocolException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+        return rc;
+    }
+
+
 
     protected String getASCIIContentFromEntity(HttpEntity entity) throws IllegalStateException, IOException
     {

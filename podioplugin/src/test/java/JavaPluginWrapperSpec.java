@@ -1,5 +1,3 @@
-import com.podio.item.Item;
-
 /**
  * Created by dylan on 10/3/14.
  */
@@ -13,20 +11,22 @@ public class JavaPluginWrapperSpec {
     private static String access_token =null;
     private static String refresh_token ="d3382127cd834fa7a2a25192fc7d9325";
     private static String targetItemId = "";
+    private static String values="";
 
     public static void main (String [] args){
         PodioPluginWrapper podioClient = new PodioPluginWrapper(clientId,clientSecret,refresh_token);
 
-//        podioClient.connect();
+        podioClient.connect();
+//        System.out.println(podioClient.connect()) ;
 
-//        podioClient.getItems(app_id);
+        System.out.println();
 
 //        podioClient.getItemById(itemId);
 
-        podioClient.getItemByExtId(app_id,externalId);
+//        podioClient.getItemByExtId(app_id,externalId);
 
-        podioClient.updateItem(targetItemId);
-        podioClient.updateItemFieldVal(targetItemId);
-        podioClient.updateItemVals();
+//        podioClient.updateItem(targetItemId);
+        podioClient.updateItemFieldVal(itemId,targetItemId,values);
+//        podioClient.updateItemVals();
     }
 }

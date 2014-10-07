@@ -1,4 +1,5 @@
-import com.podio.item.Item;
+
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -13,8 +14,8 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,13 +35,12 @@ public class PodioPluginWrapper {
     private String externalId;
     private String app_id ;
     private int limit;
-    private Item targetedItem;
 
     private String access_token;
     private String refresh_token;
     private String apiPrefix = "https://api.podio.com";
     private String authPrefix ="https://podio.com/oauth/token?";
-    private final static Logger LOGGER = Logger.getLogger(PodioPlugin.class.getName());
+    private final static Logger LOGGER = Logger.getLogger(PodioPluginWrapper.class.getName());
 
     //public vars
     public final String VERSION = "Podio Java Wrapper, version 1.0";
@@ -61,8 +61,13 @@ public class PodioPluginWrapper {
         this.refresh_token = refresh_token;
     }
 
+    public PodioPluginWrapper(String access_token){
+        this.access_token = access_token;
+    }
 
-    public void connect() {
+
+    public String connect() {
+        JSONObject rc = null;
 
         try {
 
@@ -85,8 +90,9 @@ public class PodioPluginWrapper {
             HttpEntity entity = response.getEntity();
 
             // parse result as JSON
-            JSONObject rc = new JSONObject(getASCIIContentFromEntity(entity));
-            this.access_token = rc.getString("access_token");
+            rc = new JSONObject(getASCIIContentFromEntity(entity));
+            // update access_token
+            access_token = rc.getString("access_token");
 
             System.out.println(access_token);
 
@@ -100,7 +106,7 @@ public class PodioPluginWrapper {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
+        return rc.toString();
     }
     /**
      * @param app_id
@@ -111,13 +117,12 @@ public class PodioPluginWrapper {
      *
      * GET /item/app/{app_id}/
      */
-    public JSONObject getItems(String app_id){
-        JSONObject rc = null;
+    public String getItems(String app_id){
+        String rc = null;
 
         final String ADDR = apiPrefix + "/item/app/"+app_id+"/filter/";
 
         try{
-            connect();
 
             // get http client
             HttpClient httpClient = HttpClientBuilder.create().build();
@@ -132,12 +137,10 @@ public class PodioPluginWrapper {
             HttpEntity entity = response.getEntity();
 
             // parse result as JSON
-            rc = new JSONObject(getASCIIContentFromEntity(entity));
+            rc = getASCIIContentFromEntity(entity);
             System.out.println(rc.toString());
 
 
-        } catch (JSONException e) {
-            e.printStackTrace();
         } catch (ClientProtocolException e) {
             e.printStackTrace();
         } catch (UnsupportedEncodingException e) {
@@ -159,10 +162,9 @@ public class PodioPluginWrapper {
      * GET /item/{item_id}
      */
 
-    public JSONObject getItemById(String itemId){
-        JSONObject rc=null;
+    public String getItemById(String itemId){
+        String rc=null;
         try {
-            connect();
 
             // get http client
             HttpClient httpClient = HttpClientBuilder.create().build();
@@ -177,9 +179,8 @@ public class PodioPluginWrapper {
             HttpEntity entity = response.getEntity();
 
             // parse result as JSON
-            rc = new JSONObject(getASCIIContentFromEntity(entity));
+            rc = getASCIIContentFromEntity(entity);
             System.out.println(rc);
-//            LOGGER.log(Level.INFO,"[connect] Received JSON: " + rc.toString());
 
 
         } catch (ClientProtocolException e) {
@@ -188,10 +189,52 @@ public class PodioPluginWrapper {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
-        } catch (JSONException e) {
+        }
+        return rc;
+    }
+
+    /**
+     *
+     * @return
+     */
+
+    public String getApps(){
+        String rc = null;
+
+        final String ADDR = apiPrefix + "/app/";
+
+        try{
+            connect();
+
+            // get http client
+            HttpClient httpClient = HttpClientBuilder.create().build();
+            HttpContext localContext = new BasicHttpContext();
+            HttpGet httpGet = new HttpGet(new URI(ADDR));
+
+            // add auth headers
+            httpGet.addHeader("Authorization", "Bearer " + access_token);
+
+            // execute
+            HttpResponse response = httpClient.execute(httpGet, localContext);
+            HttpEntity entity = response.getEntity();
+
+            // parse result as JSON
+            rc = getASCIIContentFromEntity(entity);
+            System.out.println(rc.toString());
+
+
+        }  catch (ClientProtocolException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (URISyntaxException e) {
             e.printStackTrace();
         }
         return rc;
+
+
     }
     /**
      * @param app_id
@@ -201,8 +244,8 @@ public class PodioPluginWrapper {
      * https://developers.podio.com/doc/items/get-item-by-external-id-19556702
      * GET /item/app/{app_id}/external_id/{external_id}
      */
-    public JSONObject getItemByExtId(String app_id,String ExtId){
-        JSONObject rc=null;
+    public String getItemByExtId(String app_id,String ExtId){
+        String rc=null;
 
         final String ADDR = apiPrefix + "/item/app/" + app_id + "/external_id/" + ExtId;
         try {
@@ -223,7 +266,7 @@ public class PodioPluginWrapper {
             HttpEntity entity = response.getEntity();
 
             // parse result as JSON
-            rc = new JSONObject(getASCIIContentFromEntity(entity));
+            rc = getASCIIContentFromEntity(entity);
             System.out.println(rc);
 
 
@@ -232,8 +275,6 @@ public class PodioPluginWrapper {
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
             e.printStackTrace();
         } catch (URISyntaxException e) {
             e.printStackTrace();
@@ -245,13 +286,13 @@ public class PodioPluginWrapper {
      * @param targetId
      *
      * Update the item values for a specific field.
-      * The identifier for the field can either be the field_id or the external_id for the field.
-      * Reference:
-      * https://developers.podio.com/doc/items/update-item-field-values-22367
-      * Restful: PUT /item/{item_id}/value/{field_or_external_id}
+     * The identifier for the field can either be the field_id or the external_id for the field.
+     * Reference:
+     * https://developers.podio.com/doc/items/update-item-field-values-22367
+     * Restful: PUT /item/{item_id}/value/{field_or_external_id}
      */
-    public JSONObject updateItemFieldVal(String itemId,String targetId,JSONObject values){
-        JSONObject rc=null;
+    public String updateItemFieldVal(String itemId,String targetId,String values){
+        String rc=null;
 
         final String ADDR = apiPrefix + "/item/"+itemId+"/value/"+targetId;
         try {
@@ -267,16 +308,15 @@ public class PodioPluginWrapper {
             httpPut.addHeader("Content-Type","application/json");
 
             // set request body
-            httpPut.setEntity(new StringEntity(values.toString()));
+            httpPut.setEntity(new StringEntity(values));
 
             // execute
             HttpResponse response = httpClient.execute(httpPut, localContext);
             HttpEntity entity = response.getEntity();
 
             // parse result as JSON
-            rc = new JSONObject(getASCIIContentFromEntity(entity));
+            rc = getASCIIContentFromEntity(entity);
             System.out.println(rc);
-//            LOGGER.log(Level.INFO,"[connect] Received JSON: " + rc.toString());
 
 
         } catch (ClientProtocolException e) {
@@ -285,9 +325,7 @@ public class PodioPluginWrapper {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        } catch (URISyntaxException e) {
+        }  catch (URISyntaxException e) {
             e.printStackTrace();
         }
         return rc;
@@ -306,12 +344,11 @@ public class PodioPluginWrapper {
      *
      */
 
-    public JSONObject updateItem(String itemId,JSONObject value){
-        JSONObject rc=null;
+    public String updateItem(String itemId,String value){
+        String rc=null;
 
         final String ADDR = apiPrefix + "/item/"+itemId;
         try {
-            connect();
 
             // get http client
             HttpClient httpClient = HttpClientBuilder.create().build();
@@ -323,14 +360,14 @@ public class PodioPluginWrapper {
             httpPut.addHeader("Content-Type","application/json");
 
             // set request body
-            httpPut.setEntity(new StringEntity(value.toString()));
+            httpPut.setEntity(new StringEntity(value));
 
             // execute
             HttpResponse response = httpClient.execute(httpPut, localContext);
             HttpEntity entity = response.getEntity();
 
             // parse result as JSON
-            rc = new JSONObject(getASCIIContentFromEntity(entity));
+            rc = getASCIIContentFromEntity(entity);
             System.out.println(rc);
 
 
@@ -339,8 +376,6 @@ public class PodioPluginWrapper {
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
             e.printStackTrace();
         } catch (URISyntaxException e) {
             e.printStackTrace();
@@ -358,12 +393,11 @@ public class PodioPluginWrapper {
      * PUT /item/{item_id}/value
      */
 
-    public JSONObject updateItemVals(String itemId,JSONObject values){
-        JSONObject rc=null;
+    public String updateItemVals(String itemId,String values){
+        String rc=null;
 
         final String ADDR = apiPrefix + "/item/"+itemId+"/value";
         try {
-            connect();
 
             // get http client
             HttpClient httpClient = HttpClientBuilder.create().build();
@@ -375,14 +409,14 @@ public class PodioPluginWrapper {
             httpPut.addHeader("Content-Type","application/json");
 
             // set request body
-            httpPut.setEntity(new StringEntity(values.toString()));
+            httpPut.setEntity(new StringEntity(values));
 
             // execute
             HttpResponse response = httpClient.execute(httpPut, localContext);
             HttpEntity entity = response.getEntity();
 
             // parse result as JSON
-            rc = new JSONObject(getASCIIContentFromEntity(entity));
+            rc = this.getASCIIContentFromEntity(entity);
             System.out.println(rc);
 
 
@@ -391,8 +425,6 @@ public class PodioPluginWrapper {
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
             e.printStackTrace();
         } catch (URISyntaxException e) {
             e.printStackTrace();
